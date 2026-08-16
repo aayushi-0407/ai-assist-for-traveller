@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens. Defined once here and referenced through Tailwind's
+   arbitrary-value syntax (e.g. bg-[var(--surface)]) so light and dark
+   stay in sync without repeating every colour at each call site. */
+:root {
+  --bg: #fbfaf9;
+  --bg-grad-a: #eef2ff;
+  --bg-grad-b: #fdf2f8;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --border: #e4e4e7;
+  --text: #18181b;
+  --text-muted: #71717a;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-text: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0b0f;
+    --bg-grad-a: #16162a;
+    --bg-grad-b: #1e1526;
+    --surface: #17171c;
+    --surface-2: #202027;
+    --border: #2c2c35;
+    --text: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --accent: #818cf8;
+    --accent-soft: #1e1b4b;
+    --accent-text: #0b0b0f;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(60rem 40rem at 15% -10%, var(--bg-grad-a), transparent 60%),
+    radial-gradient(50rem 35rem at 100% 0%, var(--bg-grad-b), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Entry animation for each new chat message / card block. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.28s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Three-dot "assistant is working" indicator. */
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.dot {
+  animation: blink 1.3s infinite both;
+}
+
+/* Keep the scrollbar from restyling the layout as the transcript grows. */
+.scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.scroll-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+}
