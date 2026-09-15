@@ -20,6 +20,13 @@ class Settings:
     google_maps_api_key: str = os.environ.get("GOOGLE_MAPS_API_KEY", "")
     google_calendar_client_id: str = os.environ.get("GOOGLE_CALENDAR_CLIENT_ID", "")
     google_calendar_client_secret: str = os.environ.get("GOOGLE_CALENDAR_CLIENT_SECRET", "")
+    cors_origins: list[str] = [
+        origin.strip()
+        for origin in os.environ.get(
+            "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+        ).split(",")
+        if origin.strip()
+    ]
 
 
 settings = Settings()
