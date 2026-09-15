@@ -3,6 +3,10 @@
 .env.local
 *.env.local
 
+# Local SSH credentials
+config
+config.pub
+
 # Python
 __pycache__/
 *.py[cod]
