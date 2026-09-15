@@ -1,16 +1,10 @@
 """
-Thin wrappers around whichever LLM provider a given call actually needs.
-Two providers are wired up:
+Thin wrappers around the LLM providers used by the app.
 
-- Claude (Anthropic) via `ask_claude` — currently unusable, the project's
-  Anthropic account has no billing credits (see PRD/README notes). Left in
-  place for when that's resolved.
-- Groq (fast, free-tier, OpenAI-compatible) via `ask_groq` — what
-  reviews.get_best_seasons and agent0_best_time's specificity check
-  actually use right now.
-
-Keep provider clients instantiated here, not scattered across agents —
-if you want to swap models, this is the one place to do it.
+For this project the active runtime path is Groq, because the Anthropic
+account is not currently billable. We still keep the Anthropic client as an
+optional helper, but the app prefers Groq to avoid invalid-key startup and
+runtime failures when Anthropic is unavailable.
 """
 import json
 import re
@@ -20,22 +14,49 @@ from groq import Groq
 
 from app.config import settings
 
-_anthropic_client = Anthropic(api_key=settings.anthropic_api_key)
+_anthropic_client = (
+    Anthropic(api_key=settings.anthropic_api_key) if settings.anthropic_api_key else None
+)
 _groq_client = Groq(api_key=settings.groq_api_key)
 
 
-def ask_claude(prompt: str, model: str = "claude-sonnet-5", max_tokens: int = 1024) -> str:
-    response = _anthropic_client.messages.create(
+def ask_question(
+    prompt: str,
+    model: str = "openai/gpt-oss-20b",
+    max_tokens: int = 1024,
+    temperature: float = 0.0,
+    json_mode: bool = False,
+) -> str:
+    """Default LLM entry point for the app: always prefer Groq."""
+    return ask_groq(
+        prompt=prompt,
         model=model,
         max_tokens=max_tokens,
-        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        json_mode=json_mode,
     )
-    return response.content[0].text
+
+
+def ask_claude(prompt: str, model: str = "claude-sonnet-5", max_tokens: int = 1024) -> str:
+    if _anthropic_client is None:
+        return ask_question(prompt=prompt, max_tokens=max_tokens)
+
+    try:
+        response = _anthropic_client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.content[0].text
+    except Exception:
+        # If Anthropic is unavailable or invalid, fall back to Groq so the app
+        # keeps working instead of crashing on an expired or missing key.
+        return ask_question(prompt=prompt, max_tokens=max_tokens)
 
 
 def ask_groq(
     prompt: str,
-    model: str = "llama-3.3-70b-versatile",
+    model: str = "openai/gpt-oss-20b",
     max_tokens: int = 1024,
     temperature: float = 0.0,
     json_mode: bool = False,
